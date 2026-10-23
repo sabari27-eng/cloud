@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Teachers - College Assignment Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+    <!-- Header with Action Button -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Manage Faculty & Teachers</h2>
+            <p class="text-muted mb-0">Admin control panel for teacher registrations, subject allocations, and account access</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="{{ url_for('admin.create_teacher') }}" class="btn btn-csm-primary">
+                <i class="bi bi-person-plus-fill me-1"></i> Create Teacher Account
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Modal / Banner if a new single-use activation link was just generated -->
+    {% if new_activation_link %}
+    <div class="alert alert-success border-success shadow-sm p-4 mb-4 rounded-3" role="alert">
+        <div class="d-flex align-items-center mb-2">
+            <i class="bi bi-key-fill text-success fs-3 me-2"></i>
+            <div>
+                <h5 class="alert-heading fw-bold mb-0">Teacher Account Created & Single-Use Activation Link Generated!</h5>
+                <span class="small">Faculty: <strong>{{ new_teacher_name }}</strong> ({{ new_teacher_email }})</span>
+            </div>
+        </div>
+        <p class="mb-2 small text-dark">
+            Provide the secure single-use activation link below to the teacher so they can set their personal password and activate their portal account.
+        </p>
+        <div class="input-group">
+            <input type="text" class="form-control font-monospace bg-white" id="activationLinkInput" value="{{ new_activation_link }}" readonly>
+            <button class="btn btn-outline-primary copy-btn" type="button" data-copy-target="#activationLinkInput">
+                <i class="bi bi-clipboard me-1"></i> Copy Activation Link
+            </button>
+            <a href="{{ new_activation_link }}" target="_blank" class="btn btn-primary">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Open Activation Page
+            </a>
+        </div>
+        <div class="mt-2 text-muted" style="font-size: 0.78rem;">
+            <i class="bi bi-shield-check text-success"></i> This link is cryptographically signed, single-use, and valid for 48 hours. Passwords are never stored in plaintext.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Teachers Table Card -->
+    <div class="csm-card">
+        <div class="csm-card-header flex-wrap gap-2">
+            <h5 class="csm-card-title">
+                <i class="bi bi-people-fill text-primary me-2"></i> Registered Teachers ({{ teachers|length }})
+            </h5>
+            <div class="d-flex align-items-center gap-2">
+                <div class="input-group input-group-sm" style="max-width: 280px;">
+                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="teacherSearchInput" class="form-control" placeholder="Search teacher, ID or dept...">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table csm-table align-middle" id="teachersTable">
+                <thead>
+                    <tr>
+                        <th>Faculty Name & Email</th>
+                        <th>Employee ID</th>
+                        <th>Department</th>
+                        <th>Assigned Subjects</th>
+                        <th>Account Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                    <tr class="teacher-row">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon blue me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ teacher.name }}</div>
+                                    <div class="text-muted small">{{ teacher.email }}</div>
+                                    {% if teacher.phone %}
+                                    <div class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-telephone me-1"></i>{{ teacher.phone }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border px-2 py-1 font-monospace">{{ teacher.employee_id }}</span>
+                        </td>
+                        <td>
+                            <span class="fw-semibold">{{ teacher.department }}</span>
+                        </td>
+                        <td>
+                            {% if teacher.assigned_subjects %}
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for sub in teacher.assigned_subjects %}
+                                        <span class="badge bg-primary-subtle text-primary border" title="{{ sub.subject_name }} (Sem {{ sub.semester }})">
+                                            {{ sub.subject_code }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <span class="text-muted small fst-italic">No subjects assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if teacher.is_active %}
+                                <span class="badge-status badge-active">
+                                    <i class="bi bi-check-circle-fill"></i> Active
+                                </span>
+                            {% else %}
+                                <span class="badge-status badge-inactive">
+                                    <i class="bi bi-dash-circle-fill"></i> Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin.edit_teacher', teacher_id=teacher.id) }}" class="btn btn-outline-secondary" title="Edit Teacher & Subject Assignments">
+                                    <i class="bi bi-pencil-fill"></i> Edit
+                                </a>
+
+                                <!-- Activate / Deactivate Toggle Button -->
+                                <form method="POST" action="{{ url_for('admin.toggle_teacher_status', teacher_id=teacher.id) }}" class="d-inline" onsubmit="return confirm('Change status for {{ teacher.name }}?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    {% if teacher.is_active %}
+                                        <button type="submit" class="btn btn-outline-warning" title="Deactivate Account">
+                                            <i class="bi bi-slash-circle"></i> Deactivate
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-outline-success" title="Activate Account">
+                                            <i class="bi bi-check-circle"></i> Activate
+                                        </button>
+                                    {% endif %}
+                                </form>
+
+                                <!-- Generate Fresh Activation Link -->
+                                <form method="POST" action="{{ url_for('admin.generate_teacher_activation', teacher_id=teacher.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline-primary" title="Generate New Activation Token">
+                                        <i class="bi bi-key"></i> Link
+                                    </button>
+                                </form>
+
+                                <!-- Delete Teacher Button -->
+                                <form method="POST" action="{{ url_for('admin.delete_teacher', teacher_id=teacher.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete teacher \'{{ teacher.name }}\' ({{ teacher.employee_id }})? This will delete their login account and course assignments.');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline-danger" title="Delete Teacher">
+                                        <i class="bi bi-trash3-fill"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No teachers registered yet. Click "Create Teacher Account" above.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('teacherSearchInput');
+    const tableRows = document.querySelectorAll('.teacher-row');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase().trim();
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

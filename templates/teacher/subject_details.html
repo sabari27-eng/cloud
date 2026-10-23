@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ subject.subject_code }} - {{ subject.subject_name }} | Teacher Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('teacher.dashboard') }}" class="text-decoration-none">Teacher Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('teacher.dashboard') }}#my-subjects" class="text-decoration-none">My Subjects</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ subject.subject_code }}</li>
+        </ol>
+    </nav>
+
+    <!-- Subject Header -->
+    <div class="welcome-banner mb-4 py-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #3b82f6 100%);">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+            <div>
+                <span class="subject-code-badge bg-white text-primary mb-2">{{ subject.subject_code }}</span>
+                <h2 class="fw-bold mb-1">{{ subject.subject_name }}</h2>
+                <p class="mb-0 opacity-90 small">
+                    Department: <strong>{{ subject.department }}</strong> &bull;
+                    Semester: <strong>Semester {{ subject.semester }}</strong> &bull;
+                    Credits: <strong>{{ subject.credits }}</strong>
+                </p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="{{ url_for('teacher.create_assignment', subject_id=subject.id) }}" class="btn btn-light btn-lg fw-bold text-primary shadow">
+                    <i class="bi bi-plus-circle-fill me-2"></i> Create Assignment
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignments List for this Subject -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="fw-bold text-dark mb-0">
+            <i class="bi bi-journal-text text-primary me-2"></i> Assignments ({{ assignments|length }})
+        </h4>
+        <span class="text-muted small">Eligible students will see published assignments automatically</span>
+    </div>
+
+    <div class="row g-4">
+        {% for a in assignments %}
+        <div class="col-lg-6">
+            <div class="csm-card h-100 d-flex flex-column">
+                <div class="csm-card-header bg-light">
+                    <div>
+                        <span class="badge bg-primary text-uppercase me-2">Max Marks: {{ a.max_marks }}</span>
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-calendar-event me-1"></i> Posted: {{ a.created_at|datetime_format("%b %d, %Y") }}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="badge bg-danger-subtle text-danger border">
+                            <i class="bi bi-clock me-1"></i> Due: {{ a.deadline|datetime_format("%b %d, %I:%M %p") }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-4 flex-grow-1">
+                    <h5 class="fw-bold text-dark mb-2">{{ a.title }}</h5>
+                    <p class="text-muted small mb-3" style="white-space: pre-line;">
+                        {{ a.description or 'No instructions provided.' }}
+                    </p>
+
+                    <!-- Attachment if present -->
+                    {% if a.attachment_filename %}
+                    <div class="p-2 mb-3 bg-light rounded border d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center text-truncate me-2">
+                            <i class="bi bi-paperclip fs-5 text-primary me-2"></i>
+                            <span class="small fw-semibold text-truncate">{{ a.attachment_filename }}</span>
+                        </div>
+                        <a href="{{ url_for('teacher.download_file', file_type='attachment', target_id=a.id) }}" class="btn btn-sm btn-outline-primary py-1 px-2">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Submission Progress Stats -->
+                    <div class="bg-light p-3 rounded border mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-bold text-dark">Submission Status:</span>
+                            <span class="small fw-bold text-primary">{{ a.submitted_count or 0 }} / {{ a.eligible_count or 0 }} Submitted</span>
+                        </div>
+                        {% set pct = (((a.submitted_count or 0) / a.eligible_count * 100)|round(1)) if (a.eligible_count and a.eligible_count > 0) else 0 %}
+                        <div class="progress progress-csm">
+                            <div class="progress-bar" role="progressbar" style="width: {{ pct }}%;" aria-valuenow="{{ pct|int }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted small mt-1" style="font-size: 0.75rem;">
+                            <span>Allowed: <code>{{ a.allowed_extensions }}</code></span>
+                            <span>Max Size: {{ a.max_file_size_mb }} MB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light border-top d-flex gap-2 justify-content-between">
+                    <a href="{{ url_for('teacher.edit_assignment', assignment_id=a.id) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-pencil me-1"></i> Edit
+                    </a>
+                    <a href="{{ url_for('teacher.view_submissions', assignment_id=a.id) }}" class="btn btn-csm-primary btn-sm px-3">
+                        <i class="bi bi-people-fill me-1"></i> View Submissions & Grade
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="csm-card p-5 text-center">
+                <div class="stat-icon purple mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.8rem;">
+                    <i class="bi bi-journal-plus"></i>
+                </div>
+                <h4 class="fw-bold text-dark">No Assignments Posted Yet</h4>
+                <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+                    You haven't created any assignments for <strong>{{ subject.subject_name }}</strong>. Click the button below to publish your first assignment to all eligible students.
+                </p>
+                <a href="{{ url_for('teacher.create_assignment', subject_id=subject.id) }}" class="btn btn-csm-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Create First Assignment
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

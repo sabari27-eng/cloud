@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ assignment.title }} - Assignment Details | Student Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 860px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('student.dashboard') }}" class="text-decoration-none">Student Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ assignment.subject_code }} Assignment</li>
+        </ol>
+    </nav>
+
+    <!-- Assignment Overview Card -->
+    <div class="csm-card mb-4 p-4 p-md-5">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+            <div>
+                <span class="subject-code-badge mb-2">{{ assignment.subject_code }}</span>
+                <h2 class="fw-bold text-dark mb-1">{{ assignment.title }}</h2>
+                <div class="text-muted small">
+                    Course: <strong>{{ assignment.subject_name }}</strong> &bull; Faculty: <strong>{{ assignment.teacher_name }}</strong>
+                </div>
+            </div>
+            <div class="text-md-end mt-2 mt-md-0">
+                <span class="badge bg-primary text-uppercase px-3 py-2 fs-6">
+                    Max Marks: {{ assignment.max_marks }}
+                </span>
+            </div>
+        </div>
+
+        <div class="p-3 bg-light rounded-3 border mb-4">
+            <div class="row g-2 small">
+                <div class="col-sm-6">
+                    <i class="bi bi-calendar-check text-success me-1"></i> Posted:
+                    <strong>{{ assignment.created_at|datetime_format("%b %d, %Y") }}</strong>
+                </div>
+                <div class="col-sm-6 text-sm-end">
+                    <i class="bi bi-clock-history text-danger me-1"></i> Due Date:
+                    <strong class="text-danger">{{ assignment.deadline|datetime_format("%b %d, %Y - %I:%M %p") }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <h5 class="fw-bold text-dark mb-2">Instructions & Guidelines</h5>
+        <div class="p-3 bg-white rounded border mb-4" style="white-space: pre-line; line-height: 1.6;">
+            {{ assignment.description or 'No specific instructions provided.' }}
+        </div>
+
+        <!-- Reference Attachment Download -->
+        {% if assignment.attachment_filename %}
+        <div class="p-3 bg-light rounded border d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-paperclip fs-3 text-primary me-3"></i>
+                <div>
+                    <div class="fw-bold text-dark">Faculty Reference Material</div>
+                    <div class="text-muted small">{{ assignment.attachment_filename }}</div>
+                </div>
+            </div>
+            <a href="{{ url_for('student.download_file', file_type='attachment', target_id=assignment.id) }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-download me-1"></i> Download Guide
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Grade and Feedback (If graded) -->
+        {% if submission and submission.grade is not none %}
+        <div class="alert alert-success border-success p-4 rounded-3 shadow-sm mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h5 class="fw-bold mb-0 text-success">
+                    <i class="bi bi-award-fill me-2"></i> Faculty Evaluation & Grade
+                </h5>
+                <span class="badge bg-success fs-5 px-3 py-2">
+                    Score: {{ submission.grade }} / {{ assignment.max_marks }}
+                </span>
+            </div>
+            <p class="mb-0 text-dark">
+                <strong>Feedback from {{ assignment.teacher_name }}:</strong><br>
+                <span class="fst-italic">{{ submission.feedback or 'No written comments provided.' }}</span>
+            </p>
+            {% if submission.graded_at %}
+            <div class="text-muted small mt-2" style="font-size: 0.75rem;">
+                Evaluated on {{ submission.graded_at|datetime_format("%b %d, %Y at %I:%M %p") }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Current Submission Status Card -->
+        {% if submission %}
+        <div class="p-4 bg-light rounded-3 border mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-cloud-check-fill text-success me-2"></i> Your Current Submission</h5>
+                {% if submission.is_late %}
+                    <span class="badge-status badge-late"><i class="bi bi-alarm-fill"></i> Late Submission</span>
+                {% else %}
+                    <span class="badge-status badge-submitted"><i class="bi bi-check-circle-fill"></i> Submitted On Time</span>
+                {% endif %}
+            </div>
+            <div class="row align-items-center mt-3">
+                <div class="col-md-8">
+                    <div class="fw-semibold text-dark">{{ submission.file_filename }}</div>
+                    <div class="text-muted small">Submitted on: {{ submission.submitted_at|datetime_format("%b %d, %Y - %I:%M %p") }}</div>
+                </div>
+                <div class="col-md-4 text-md-end mt-2 mt-md-0">
+                    <a href="{{ url_for('student.download_file', file_type='submission', target_id=submission.id) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-download me-1"></i> Download My File
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Upload / Re-Submit Form -->
+        <h5 class="fw-bold text-dark mb-3">
+            <i class="bi bi-upload text-primary me-2"></i>
+            {% if submission %}Upload Revised Submission{% else %}Submit Assignment Solution{% endif %}
+        </h5>
+
+        <form method="POST" action="{{ url_for('student.view_assignment', assignment_id=assignment.id) }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+                <label for="submissionFileInput" class="form-label">
+                    Select Solution File <span class="text-danger">*</span>
+                </label>
+                <input class="form-control"
+                       type="file"
+                       id="submissionFileInput"
+                       name="submission_file"
+                       data-max-size="{{ assignment.max_file_size_mb or 10 }}"
+                       data-allowed-exts="{{ assignment.allowed_extensions or 'pdf,doc,docx,zip' }}"
+                       required>
+                <div class="form-text text-muted d-flex justify-content-between mt-1">
+                    <span>Allowed Extensions: <code>{{ assignment.allowed_extensions or 'pdf,doc,docx,zip' }}</code></span>
+                    <span>Max Size: <strong>{{ assignment.max_file_size_mb or 10 }} MB</strong></span>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+                <button type="submit" class="btn btn-success btn-lg px-4 fw-bold">
+                    <i class="bi bi-cloud-arrow-up-fill me-2"></i>
+                    {% if submission %}Update Submission{% else %}Turn In Assignment{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

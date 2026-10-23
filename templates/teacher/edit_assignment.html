@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Assignment - {{ assignment.title }} | Teacher Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 860px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('teacher.dashboard') }}">Teacher Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('teacher.subject_details', subject_id=assignment.subject_id) }}">{{ assignment.subject_code }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Assignment</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Edit Assignment Details</h2>
+            <p class="text-muted mb-0">Course: <strong>{{ assignment.subject_code }} - {{ assignment.subject_name }}</strong></p>
+        </div>
+        <a href="{{ url_for('teacher.subject_details', subject_id=assignment.subject_id) }}" class="btn btn-outline-secondary">
+            Cancel
+        </a>
+    </div>
+
+    <div class="csm-card p-4 p-md-5">
+        <form method="POST" action="{{ url_for('teacher.edit_assignment', assignment_id=assignment.id) }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-4">
+                <label for="assignmentTitle" class="form-label">Assignment Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-lg" id="assignmentTitle" name="title" value="{{ assignment.title }}" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="assignmentDescription" class="form-label">Description & Instructions <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="assignmentDescription" name="description" rows="6" required>{{ assignment.description }}</textarea>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label for="maxMarks" class="form-label">Maximum Marks</label>
+                    <input type="number" class="form-control" id="maxMarks" name="max_marks" value="{{ assignment.max_marks }}">
+                </div>
+                <div class="col-md-8">
+                    <label for="assignmentDeadline" class="form-label">Submission Deadline <span class="text-danger">*</span></label>
+                    <input type="datetime-local" class="form-control" id="assignmentDeadline" name="deadline" value="{{ assignment.deadline|string|replace(' ', 'T')|truncate(16, True, '') }}" required>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label for="allowedExtensions" class="form-label">Allowed File Types</label>
+                    <input type="text" class="form-control" id="allowedExtensions" name="allowed_extensions" value="{{ assignment.allowed_extensions }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="maxFileSize" class="form-label">Max File Size (MB)</label>
+                    <input type="number" class="form-control" id="maxFileSize" name="max_file_size_mb" value="{{ assignment.max_file_size_mb }}">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="attachmentFile" class="form-label">Update Attachment (Leave empty to keep existing)</label>
+                {% if assignment.attachment_filename %}
+                <div class="small text-muted mb-2">Current attachment: <strong>{{ assignment.attachment_filename }}</strong></div>
+                {% endif %}
+                <input class="form-control" type="file" id="attachmentFile" name="attachment">
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                <a href="{{ url_for('teacher.subject_details', subject_id=assignment.subject_id) }}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-csm-primary btn-lg px-4 fw-bold">Update Assignment</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

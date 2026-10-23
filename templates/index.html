@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Cloud Assignment Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Hero Banner -->
+    <div class="welcome-banner text-center mb-5 py-5">
+        <span class="badge px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Cloud Submission & Management
+        </span>
+        <h1 class="display-5 fw-bold mb-3">College Assignment Submission & Tracking Portal</h1>
+        <p class="lead mb-4 mx-auto text-secondary" style="max-width: 720px;">
+            An integrated academic platform for teachers, students, and administrators. Manage subject allocations, post assignments, track submissions in real time, and grade assignments securely.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="{{ url_for('auth.teacher_login') }}" class="btn btn-csm-primary btn-lg px-4 fw-bold">
+                <i class="bi bi-person-workspace me-2"></i> Teacher Portal
+            </a>
+            <a href="{{ url_for('auth.student_login') }}" class="btn btn-csm-secondary btn-lg px-4 fw-bold">
+                <i class="bi bi-backpack me-2"></i> Student Portal
+            </a>
+            <a href="{{ url_for('auth.admin_login') }}" class="btn btn-csm-secondary btn-lg px-4 fw-bold">
+                <i class="bi bi-shield-lock me-2"></i> Admin Portal
+            </a>
+        </div>
+    </div>
+
+    <!-- Portal Cards Section -->
+    <div class="row g-4 mb-5">
+        <!-- Teacher Portal Card -->
+        <div class="col-md-4">
+            <div class="csm-card h-100 p-4 d-flex flex-column border-top border-4 border-primary">
+                <div class="stat-icon blue mb-3">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <h4 class="fw-bold text-main mb-2">Teacher Portal</h4>
+                <p class="text-muted small flex-grow-1">
+                    Exclusively for faculty members. Access assigned subjects, create assignment guidelines, track student submissions against eligible rosters, and enter grades with feedback.
+                </p>
+                <div class="mt-3">
+                    <a href="{{ url_for('auth.teacher_login') }}" class="btn btn-csm-primary w-100">
+                        Teacher Sign In <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Portal Card -->
+        <div class="col-md-4">
+            <div class="csm-card h-100 p-4 d-flex flex-column border-top border-4 border-success">
+                <div class="stat-icon green mb-3">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <h4 class="fw-bold text-main mb-2">Student Portal</h4>
+                <p class="text-muted small flex-grow-1">
+                    View assignments published for your department and semester. Upload project reports and source code, check deadlines, and view grades and teacher feedback.
+                </p>
+                <div class="d-flex gap-2 mt-3">
+                    <a href="{{ url_for('auth.student_login') }}" class="btn btn-outline-success flex-grow-1 fw-semibold">
+                        Sign In
+                    </a>
+                    <a href="{{ url_for('auth.student_register') }}" class="btn btn-success flex-grow-1 fw-semibold">
+                        Register
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Portal Card -->
+        <div class="col-md-4">
+            <div class="csm-card h-100 p-4 d-flex flex-column border-top border-4 border-info">
+                <div class="stat-icon purple mb-3">
+                    <i class="bi bi-shield-shaded"></i>
+                </div>
+                <h4 class="fw-bold text-main mb-2">Administrator Panel</h4>
+                <p class="text-muted small flex-grow-1">
+                    Authorized administration access only. Register faculty members, allocate subjects, generate single-use activation tokens, and manage departments and course catalogues.
+                </p>
+                <div class="mt-3">
+                    <a href="{{ url_for('auth.admin_login') }}" class="btn btn-csm-secondary w-100 fw-semibold">
+                        Admin Login <i class="bi bi-lock-fill ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick System Credentials helper for review / demo -->
+    <div class="csm-card p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold mb-0 text-main">
+                <i class="bi bi-key-fill text-warning me-2"></i> Demo & Viva Evaluation Credentials
+            </h5>
+            <span class="badge footer-badge">Pre-seeded Database</span>
+        </div>
+        <div class="row g-3 small">
+            <div class="col-md-4">
+                <div class="p-3 rounded border stat-card">
+                    <span class="badge bg-primary mb-2">Teacher</span>
+                    <div class="fw-bold text-main">alan.turing@college.edu</div>
+                    <div class="text-muted">Password: <code class="text-info">Teacher@123</code></div>
+                    <div class="text-muted mt-1"><i class="bi bi-check-circle-fill text-success"></i> Active, 2 subjects assigned</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 rounded border stat-card">
+                    <span class="badge bg-success mb-2">Student</span>
+                    <div class="fw-bold text-main">john.doe@student.college.edu</div>
+                    <div class="text-muted">Password: <code class="text-info">Student@123</code></div>
+                    <div class="text-muted mt-1">Reg No: <code class="text-info">21CS001</code> (CSE Sem 5)</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 rounded border stat-card">
+                    <span class="badge bg-secondary mb-2">Admin</span>
+                    <div class="fw-bold text-main">admin@college.edu</div>
+                    <div class="text-muted">Password: <code class="text-info">Admin@123</code></div>
+                    <div class="text-muted mt-1">Full control over teachers & subjects</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

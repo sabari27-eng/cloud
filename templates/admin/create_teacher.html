@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Teacher Account - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 820px;">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Create Teacher Account</h2>
+            <p class="text-muted mb-0">Authorized Administrator Action Only</p>
+        </div>
+        <a href="{{ url_for('admin.manage_teachers') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Teachers
+        </a>
+    </div>
+
+    <div class="csm-card p-4 p-md-5">
+        <form method="POST" action="{{ url_for('admin.create_teacher') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <h5 class="fw-bold text-primary mb-3">1. Faculty Profile Information</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Teacher Full Name <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-person text-muted"></i></span>
+                        <input type="text" class="form-control" name="name" value="{{ name or '' }}" placeholder="e.g. Dr. Jane Smith" required autofocus>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">College Email Address <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-envelope-at text-muted"></i></span>
+                        <input type="email" class="form-control" name="email" value="{{ email or '' }}" placeholder="jane.smith@college.edu" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Employee ID <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-card-text text-muted"></i></span>
+                        <input type="text" class="form-control" name="employee_id" value="{{ employee_id or '' }}" placeholder="e.g. EMP105" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Department <span class="text-danger">*</span></label>
+                    <select class="form-select" name="department" required>
+                        <option value="">Select Department</option>
+                        <option value="Computer Science" {% if department == 'Computer Science' %}selected{% endif %}>Computer Science</option>
+                        <option value="Information Technology" {% if department == 'Information Technology' %}selected{% endif %}>Information Technology</option>
+                        <option value="Electronics & Comm" {% if department == 'Electronics & Comm' %}selected{% endif %}>Electronics & Comm</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-telephone text-muted"></i></span>
+                        <input type="tel" class="form-control" name="phone" value="{{ phone or '' }}" placeholder="+91 9876543210">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">College / Institution</label>
+                    <input type="text" class="form-control" name="college" value="{{ college or 'Apex Institute of Technology' }}">
+                </div>
+            </div>
+
+            <h5 class="fw-bold text-primary mb-3">2. Assign Subjects (Course Allocation)</h5>
+            <p class="text-muted small mb-3">Select one or multiple subjects this teacher is authorized to teach and post assignments for.</p>
+
+            <div class="border rounded-3 p-3 bg-light mb-4" style="max-height: 280px; overflow-y: auto;">
+                {% if all_subjects %}
+                    <div class="row g-2">
+                        {% for sub in all_subjects %}
+                        <div class="col-md-6">
+                            <div class="form-check p-2 bg-white rounded border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" name="subjects" value="{{ sub.id }}" id="sub_{{ sub.id }}">
+                                <label class="form-check-label w-100" for="sub_{{ sub.id }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold text-dark">{{ sub.subject_code }}</span>
+                                        <span class="badge bg-light text-muted border">Sem {{ sub.semester }}</span>
+                                    </div>
+                                    <div class="text-muted small text-truncate">{{ sub.subject_name }}</div>
+                                    <div class="text-primary" style="font-size: 0.72rem;">{{ sub.department }}</div>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-muted small">No subjects available in database. Add subjects first.</div>
+                {% endif %}
+            </div>
+
+            <!-- Activation Security Notice -->
+            <div class="alert alert-secondary p-3 small mb-4">
+                <i class="bi bi-shield-lock-fill text-primary me-2"></i>
+                <strong>Single-Use Account Activation:</strong> The admin does not set a plain text password. Upon account creation, the system will generate a secure, single-use activation link where the teacher will set their own confidential password.
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('admin.manage_teachers') }}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-csm-primary btn-lg px-4">
+                    <i class="bi bi-person-check-fill me-1"></i> Create Teacher & Generate Activation Link
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

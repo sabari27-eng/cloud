@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Assignment - {{ subject.subject_code }} | Teacher Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 860px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('teacher.dashboard') }}" class="text-decoration-none">Teacher Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('teacher.subject_details', subject_id=subject.id) }}" class="text-decoration-none">{{ subject.subject_code }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Create Assignment</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Create & Publish Assignment</h2>
+            <p class="text-muted mb-0">Course: <strong>{{ subject.subject_code }} - {{ subject.subject_name }}</strong></p>
+        </div>
+        <a href="{{ url_for('teacher.subject_details', subject_id=subject.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Cancel
+        </a>
+    </div>
+
+    <!-- Eligibility Notice Banner -->
+    <div class="alert alert-primary d-flex align-items-center p-3 mb-4 rounded-3 shadow-sm border-0">
+        <i class="bi bi-broadcast fs-3 text-primary me-3"></i>
+        <div>
+            <div class="fw-bold">Automatic Student Roster Targeting Active</div>
+            <div class="small">
+                Once published, this assignment will automatically appear on the dashboards of all students registered under <strong>{{ subject.department }}</strong> in <strong>Semester {{ subject.semester }}</strong>.
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Form -->
+    <div class="csm-card p-4 p-md-5">
+        <form method="POST" action="{{ url_for('teacher.create_assignment', subject_id=subject.id) }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Assignment Title -->
+            <div class="mb-4">
+                <label for="assignmentTitle" class="form-label">
+                    Assignment Title <span class="text-danger">*</span>
+                </label>
+                <input type="text"
+                       class="form-control form-control-lg"
+                       id="assignmentTitle"
+                       name="title"
+                       value="{{ title or '' }}"
+                       placeholder="e.g. Assignment 2: Relational Database Normalization & SQL Queries"
+                       required
+                       autofocus>
+                <div class="form-text text-muted">Provide a clear, descriptive title for your students.</div>
+            </div>
+
+            <!-- Description and Instructions -->
+            <div class="mb-4">
+                <label for="assignmentDescription" class="form-label">
+                    Description & Instructions <span class="text-danger">*</span>
+                </label>
+                <textarea class="form-control"
+                          id="assignmentDescription"
+                          name="description"
+                          rows="6"
+                          placeholder="Specify the problem statements, submission requirements, rubric guidelines, and formatting standards..."
+                          required>{{ description or '' }}</textarea>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <!-- Maximum Marks -->
+                <div class="col-md-4">
+                    <label for="maxMarks" class="form-label">Maximum Marks / Points</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-award text-muted"></i></span>
+                        <input type="number" class="form-control" id="maxMarks" name="max_marks" min="1" max="1000" value="{{ max_marks or '100' }}">
+                    </div>
+                </div>
+
+                <!-- Submission Deadline (Date & Time) -->
+                <div class="col-md-8">
+                    <label for="assignmentDeadline" class="form-label">
+                        Submission Deadline <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-clock text-danger"></i></span>
+                        <input type="datetime-local" class="form-control" id="assignmentDeadline" name="deadline" required>
+                    </div>
+                    <div class="form-text text-muted">Submissions uploaded after this time will be flagged as Late.</div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <!-- Allowed File Extensions -->
+                <div class="col-md-6">
+                    <label for="allowedExtensions" class="form-label">Allowed File Types (Comma-separated)</label>
+                    <input type="text"
+                           class="form-control"
+                           id="allowedExtensions"
+                           name="allowed_extensions"
+                           value="{{ allowed_extensions or 'pdf,doc,docx,zip' }}">
+                    <div class="form-text text-muted">e.g. <code>pdf,doc,docx,zip</code> or <code>zip,py,txt</code></div>
+                </div>
+
+                <!-- Maximum File Size (MB) -->
+                <div class="col-md-6">
+                    <label for="maxFileSize" class="form-label">Max File Size (Megabytes)</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="maxFileSize" name="max_file_size_mb" min="1" max="25" value="{{ max_file_size_mb or '15' }}">
+                        <span class="input-group-text bg-white">MB</span>
+                    </div>
+                    <div class="form-text text-muted">Maximum allowed upload limit per student submission.</div>
+                </div>
+            </div>
+
+            <!-- Reference Attachment Upload -->
+            <div class="mb-4">
+                <label for="attachmentFile" class="form-label">
+                    Reference Material / Template Attachment (Optional)
+                </label>
+                <input class="form-control"
+                       type="file"
+                       id="attachmentFile"
+                       name="attachment"
+                       data-max-size="20"
+                       data-allowed-exts="pdf,doc,docx,zip,txt,png,jpg,jpeg">
+                <div class="form-text text-muted">Attach lab manual, problem statement PDF, or starter template zip.</div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                <a href="{{ url_for('teacher.subject_details', subject_id=subject.id) }}" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-csm-primary btn-lg px-4 fw-bold">
+                    <i class="bi bi-cloud-arrow-up-fill me-2"></i> Publish Assignment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Auto set default deadline to 7 days in future
+document.addEventListener('DOMContentLoaded', () => {
+    const deadlineInput = document.getElementById('assignmentDeadline');
+    if (deadlineInput && !deadlineInput.value) {
+        const now = new Date();
+        now.setDate(now.getDate() + 7);
+        now.setHours(23, 59, 0, 0);
+        // Format to YYYY-MM-DDTHH:MM local
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        deadlineInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+});
+</script>
+{% endblock %}

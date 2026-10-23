@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - College Assignment Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner mb-4" style="background: linear-gradient(135deg, #065f46 0%, #059669 60%, #10b981 100%);">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <span class="badge bg-white text-success px-3 py-1 rounded-pill fw-bold mb-2 shadow-sm">
+                    <i class="bi bi-mortarboard-fill me-1"></i> Student Portal
+                </span>
+                <h1 class="fw-bold mb-1">Welcome, {{ student.name }}!</h1>
+                <p class="mb-0 opacity-90">
+                    Register Number: <code>{{ student.register_no }}</code> &bull;
+                    Department of {{ student.department }} &bull;
+                    Semester {{ student.semester }} (Section {{ student.class_section }})
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <span class="badge bg-light text-dark px-3 py-2 border shadow-sm">
+                    <i class="bi bi-building me-1 text-success"></i> {{ student.college }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-label">Enrolled Subjects</div>
+                        <div class="stat-value text-dark">{{ stats.enrolled_subjects_count }}</div>
+                    </div>
+                    <div class="stat-icon green">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-muted small">Semester {{ student.semester }} Courses</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-label">Total Assignments</div>
+                        <div class="stat-value text-dark">{{ stats.total_assignments }}</div>
+                    </div>
+                    <div class="stat-icon blue">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-muted small">Course assignments published</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-label">Completed</div>
+                        <div class="stat-value text-success">{{ stats.submitted_count }}</div>
+                    </div>
+                    <div class="stat-icon green">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-muted small">{{ stats.graded_count }} Graded by Faculty</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-label">Pending Submissions</div>
+                        <div class="stat-value text-warning">{{ stats.pending_count }}</div>
+                    </div>
+                    <div class="stat-icon amber">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-muted small">Require your submission</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Assignments Table -->
+    <div class="csm-card mb-4">
+        <div class="csm-card-header">
+            <h5 class="csm-card-title">
+                <i class="bi bi-list-task text-success me-2"></i> Course Assignments & Submission Status
+            </h5>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table csm-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Assignment</th>
+                        <th>Faculty</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                        <th>Grade</th>
+                        <th>Feedback</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in assignments %}
+                    <tr>
+                        <td>
+                            <span class="subject-code-badge">{{ a.subject_code }}</span>
+                            <div class="text-muted small mt-1">{{ a.subject_name }}</div>
+                        </td>
+                        <td class="fw-bold text-dark">{{ a.title }}</td>
+                        <td class="small">{{ a.teacher_name }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-alarm me-1 text-danger"></i> {{ a.deadline|datetime_format("%b %d, %Y - %I:%M %p") }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if a.status == 'Submitted' %}
+                                <span class="badge-status badge-submitted"><i class="bi bi-check-circle-fill"></i> Submitted</span>
+                            {% elif a.status == 'Late' %}
+                                <span class="badge-status badge-late"><i class="bi bi-alarm-fill"></i> Late</span>
+                            {% elif a.status == 'Overdue' %}
+                                <span class="badge-status badge-late"><i class="bi bi-exclamation-octagon-fill"></i> Overdue</span>
+                            {% else %}
+                                <span class="badge-status badge-pending"><i class="bi bi-hourglass-split"></i> Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if a.grade is not none %}
+                                <span class="badge bg-success fs-6">{{ a.grade }} / {{ a.max_marks }}</span>
+                            {% elif a.submission_id %}
+                                <span class="badge bg-light text-muted border">Ungraded</span>
+                            {% else %}
+                                <span class="text-muted small">&mdash;</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if a.feedback %}
+                                <span class="text-truncate d-inline-block small text-dark" style="max-width: 160px;" title="{{ a.feedback }}">
+                                    {{ a.feedback }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted small">&mdash;</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('student.view_assignment', assignment_id=a.id) }}" class="btn btn-sm btn-outline-success">
+                                {% if a.submission_id %}
+                                    <i class="bi bi-eye me-1"></i> View / Update
+                                {% else %}
+                                    <i class="bi bi-upload me-1"></i> Submit
+                                {% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            No assignments posted yet for your department and semester.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Dashboard - College Assignment Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+    <!-- Welcome Banner with Teacher Name & Department -->
+    <div class="welcome-banner mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <span class="badge bg-white text-primary px-3 py-1 rounded-pill fw-bold mb-2 shadow-sm">
+                    <i class="bi bi-person-workspace me-1"></i> Faculty Portal
+                </span>
+                <h1 class="fw-bold mb-1">Welcome, {{ teacher.name }}!</h1>
+                <p class="mb-0 opacity-90">
+                    Department of {{ teacher.department }} &bull; Employee ID: <code>{{ teacher.employee_id }}</code> &bull; {{ teacher.college }}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <span class="badge bg-light text-dark px-3 py-2 border shadow-sm">
+                    <i class="bi bi-calendar-event me-1 text-primary"></i> Academic Year 2026-2027
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Key Statistic Cards (Assigned Subjects, Total Assignments, Student Submissions, Pending Submissions) -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Assigned Subjects -->
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-label">Assigned Subjects</div>
+                        <div class="stat-value text-primary">{{ stats.assigned_subjects_count }}</div>
+                    </div>
+                    <div class="stat-icon blue">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-muted small">Course allocations for this semester</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Total Assignments Posted -->
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-label">Assignments Posted</div>
+                        <div class="stat-value text-dark">{{ stats.total_assignments }}</div>
+                    </div>
+                    <div class="stat-icon purple">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-muted small">Across all your assigned courses</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Total Student Submissions -->
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-label">Student Submissions</div>
+                        <div class="stat-value text-success">{{ stats.total_submissions }}</div>
+                    </div>
+                    <div class="stat-icon green">
+                        <i class="bi bi-cloud-check-fill"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-muted small">Completed student submissions</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Total Pending Submissions -->
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-label">Pending Submissions</div>
+                        <div class="stat-value text-warning">{{ stats.total_pending }}</div>
+                    </div>
+                    <div class="stat-icon amber">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-muted small">Awaiting submission from eligible roster</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- "My Subjects" Section (Showing ONLY subjects assigned to logged-in teacher) -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h4 class="fw-bold text-dark mb-0">
+                <i class="bi bi-collection-fill text-primary me-2"></i> My Subjects
+            </h4>
+            <p class="text-muted small mb-0">Your assigned courses for creating assignments and tracking submissions</p>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border px-3 py-2 rounded-pill">
+            {{ subjects|length }} Allocated Subjects
+        </span>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% for sub in subjects %}
+        <div class="col-md-6 col-lg-4">
+            <div class="subject-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="subject-code-badge">{{ sub.subject_code }}</span>
+                    <span class="badge bg-light text-dark border">
+                        <i class="bi bi-award me-1 text-primary"></i> {{ sub.credits }} Credits
+                    </span>
+                </div>
+
+                <h5 class="subject-title">{{ sub.subject_name }}</h5>
+
+                <div class="subject-meta">
+                    <div class="d-flex align-items-center text-muted mb-1">
+                        <i class="bi bi-diagram-3 me-2 text-primary"></i>
+                        <span>Department: <strong>{{ sub.department }}</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center text-muted mb-1">
+                        <i class="bi bi-calendar3 me-2 text-primary"></i>
+                        <span>Semester: <strong>Semester {{ sub.semester }}</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center text-muted">
+                        <i class="bi bi-files me-2 text-primary"></i>
+                        <span>Assignments: <strong>{{ sub.assignments_count }} Posted</strong></span>
+                    </div>
+                </div>
+
+                <div class="pt-3 border-top mt-auto">
+                    <a href="{{ url_for('teacher.subject_details', subject_id=sub.id) }}" class="btn btn-csm-primary w-100">
+                        <i class="bi bi-folder2-open me-2"></i> Open Subject
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="csm-card p-5 text-center">
+                <div class="stat-icon blue mx-auto mb-3" style="width: 64px; height: 64px; font-size: 2rem;">
+                    <i class="bi bi-journal-x"></i>
+                </div>
+                <h4 class="fw-bold text-dark">No Subjects Assigned</h4>
+                <p class="text-muted mx-auto mb-3" style="max-width: 480px;">
+                    You are not currently assigned to any subjects. Please contact the college administrator to allocate courses to your teacher profile.
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Assignments Table -->
+    {% if recent_assignments %}
+    <div class="csm-card">
+        <div class="csm-card-header">
+            <h5 class="csm-card-title">
+                <i class="bi bi-clock-history text-primary me-2"></i> Your Recent Assignments
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table csm-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Assignment Title</th>
+                        <th>Created Date</th>
+                        <th>Deadline</th>
+                        <th>Submissions</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in recent_assignments %}
+                    <tr>
+                        <td>
+                            <span class="subject-code-badge">{{ a.subject_code }}</span>
+                            <div class="text-muted small mt-1">{{ a.subject_name }}</div>
+                        </td>
+                        <td class="fw-bold text-dark">{{ a.title }}</td>
+                        <td class="text-muted small">{{ a.created_at|datetime_format("%b %d, %Y") }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-alarm me-1 text-danger"></i> {{ a.deadline|datetime_format("%b %d, %Y - %I:%M %p") }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success-subtle text-success border">
+                                <i class="bi bi-check2-circle me-1"></i> {{ a.sub_count }} Submissions
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('teacher.view_submissions', assignment_id=a.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-people-fill me-1"></i> Track Submissions
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

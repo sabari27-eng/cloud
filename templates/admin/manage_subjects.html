@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Subjects - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Course Catalog & Subjects</h2>
+            <p class="text-muted mb-0">Define academic subjects, departments, and semester allocations</p>
+        </div>
+        <button class="btn btn-csm-primary" data-bs-toggle="collapse" data-bs-target="#addSubjectCollapse">
+            <i class="bi bi-plus-circle me-1"></i> Add New Subject
+        </button>
+    </div>
+
+    <!-- Collapsible Add Subject Form -->
+    <div class="collapse mb-4" id="addSubjectCollapse">
+        <div class="csm-card p-4">
+            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-journal-plus me-2"></i> Register New Subject</h5>
+            <form method="POST" action="{{ url_for('admin.manage_subjects') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Subject Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="subject_code" placeholder="e.g. CS504" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Subject Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="subject_name" placeholder="e.g. Artificial Intelligence" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Department <span class="text-danger">*</span></label>
+                        <select class="form-select" name="department" required>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Electronics & Comm">Electronics & Comm</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Semester</label>
+                        <input type="number" class="form-control" name="semester" min="1" max="8" value="5" required>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Credits</label>
+                        <input type="number" class="form-control" name="credits" min="1" max="6" value="3">
+                    </div>
+                </div>
+                <div class="mt-3 text-end">
+                    <button type="button" class="btn btn-outline-secondary me-2" data-bs-toggle="collapse" data-bs-target="#addSubjectCollapse">Cancel</button>
+                    <button type="submit" class="btn btn-csm-primary">Save Subject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Subjects List Card -->
+    <div class="csm-card">
+        <div class="csm-card-header flex-wrap gap-2">
+            <h5 class="csm-card-title"><i class="bi bi-journal-bookmark-fill me-2 text-primary"></i> All Subjects ({{ subjects|length }})</h5>
+            <div class="d-flex align-items-center gap-2">
+                <div class="input-group input-group-sm" style="max-width: 280px;">
+                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="subjectSearchInput" class="form-control" placeholder="Search subject or code...">
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table csm-table align-middle" id="subjectsTable">
+                <thead>
+                    <tr>
+                        <th>Subject Code</th>
+                        <th>Subject Name</th>
+                        <th>Department</th>
+                        <th>Semester</th>
+                        <th>Credits</th>
+                        <th>Allocated Teachers</th>
+                        <th>Assignments</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in subjects %}
+                    <tr class="subject-row">
+                        <td>
+                            <span class="subject-code-badge">{{ sub.subject_code }}</span>
+                        </td>
+                        <td class="fw-bold text-dark">{{ sub.subject_name }}</td>
+                        <td>{{ sub.department }}</td>
+                        <td><span class="badge bg-light text-dark border">Sem {{ sub.semester }}</span></td>
+                        <td>{{ sub.credits }}</td>
+                        <td>
+                            <span class="badge bg-info-subtle text-info border">
+                                <i class="bi bi-person me-1"></i> {{ sub.allocated_teachers_count }} Teachers
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary-subtle text-secondary border">
+                                <i class="bi bi-file-earmark-text me-1"></i> {{ sub.assignments_count }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <form method="POST" action="{{ url_for('admin.delete_subject', subject_id=sub.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete subject \'{{ sub.subject_code }} - {{ sub.subject_name }}\'? This will remove it from the course catalog.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Unwanted Subject">
+                                    <i class="bi bi-trash3-fill me-1"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">No subjects registered yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('subjectSearchInput');
+    const tableRows = document.querySelectorAll('.subject-row');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase().trim();
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
