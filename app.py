@@ -70,15 +70,15 @@ def create_app(config_class=Config):
         return render_template('errors/403.html', description=getattr(e, 'description', 'Bad Request / Security Check Failed')), 400
 
     return app
+# Auto-initialize database if not present
+if not os.path.exists(Config.DB_PATH):
+    from init_db import init_db
+    print("[app] Database not detected. Initializing fresh database...")
+    init_db()
 
 app = create_app()
 
 if __name__ == '__main__':
-    # Auto-initialize database if not present
-    if not os.path.exists(Config.DB_PATH):
-        from init_db import init_db
-        print("[app] Database not detected. Initializing fresh database...")
-        init_db()
 
     print("=================================================================")
     print(" Cloud-Based Assignment Submission and Tracking System (CSM) ")
